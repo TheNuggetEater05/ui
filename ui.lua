@@ -2218,7 +2218,7 @@ do -- Library
         end
 
         Utility.AddConnection(UserInputService.InputBegan, function(Input)
-            if Input.KeyCode == Enum.KeyCode.Z then
+            if Input.KeyCode == Library.Binds["Window"] then
                 Window:Fade(Library.WindowVisible)
                 Library.WindowVisible = not Library.WindowVisible
                 UserInputService.MouseIconEnabled = not Library.WindowVisible
