@@ -1427,6 +1427,7 @@ do -- Library
                             Tab.Elements[#Tab.Elements+1] = v
                         end
 
+                        Library.Flags[cprops.Flag] = Colorpicker
                         return Colorpicker
                     end
 
