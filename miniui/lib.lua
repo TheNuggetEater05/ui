@@ -143,23 +143,29 @@ function library.new(self,
         Name: string?,
         BackName: string?,
         Position: Vector2?,
-        Width: number?,
+        Size: Vector2?,
         Bind: EnumKeyCode?
     }
-) : ()
+) : {}
     props = {
         Name = props.Name or "MinUI",
         BackName = props.BackName or "",
         Position = props.Position or Vector2.new(25, 75),
-        Width = props.Width or 280,
+        Size = props.Size or Vector2.new(280, 512),
         Bind = props.Bind or Enum.KeyCode.RightControl,
     }
+
+    local window = {
+        tabs = {},
+        size = props.Size
+    }
+
     -- topbar
     do
         draw("Square", "tb_ol", {
                 Filled = true,
                 Position = props.Position,
-                Size = Vector2.new(props.Width or 75, 25),
+                Size = Vector2.new(props.Size.X, 25),
                 Color = self.themes.default.outline
             }
         )
@@ -170,6 +176,14 @@ function library.new(self,
                 Size = UDim2.new(1, -2, 1, -2),
                 Color = self.themes.default.inline
             }, self.drawings.tb_ol
+        )
+
+        draw("Square", "tb_accent", {
+            Filled = true,
+                Position = UDim2.new(0, 0, 0.8, 0),
+                Size = UDim2.new(1, 0, 0.2, 0),
+                Color = self.themes.default.accent
+            }, self.drawings.tb_il
         )
 
         draw("Square", "tb_bg", {
@@ -204,6 +218,70 @@ function library.new(self,
         self.drawings.tb_text_accent.Position += Vector2.new((self.drawings.tb_text_prefix.TextBounds.X - self.drawings.tb_text_accent.TextBounds.X) / 2, -self.drawings.tb_text_accent.TextBounds.Y / 2)
     end
     -- end topbar
+    
+    -- main window
+    do
+        draw("Square", "main_ol", {
+                Filled = true,
+                Position = UDim2.new(0, 0, 1, -1),
+                Size = UDim2.new(1, 0, 0, props.Size.Y),
+                Color = self.themes.default.outline
+            }, self.drawings.tb_ol
+        )
+
+        draw("Square", "main_il", {
+                Filled = true,
+                Position = UDim2.fromOffset(1, 1),
+                Size = UDim2.new(1, -2, 1, -2),
+                Color = self.themes.default.inline
+            }, self.drawings.main_ol
+        )
+
+        draw("Square", "main_bg", {
+                Filled = true,
+                Position = UDim2.fromOffset(1, 1),
+                Size = UDim2.new(1, -2, 1, -2),
+                Color = self.themes.default.background
+            }, self.drawings.main_il
+        )
+    end
+    -- end main window
+
+    -- bottom bar
+    do
+        draw("Square", "bb_ol", {
+                Filled = true,
+                Position = UDim2.new(0, 0, 1, -1),
+                Size = Vector2.new(props.Size.X, 25),
+                Color = self.themes.default.outline
+            }, self.drawings.main_ol
+        )
+
+        draw("Square", "bb_il", {
+                Filled = true,
+                Position = UDim2.fromOffset(1, 1),
+                Size = UDim2.new(1, -2, 1, -2),
+                Color = self.themes.default.inline
+            }, self.drawings.bb_ol
+        )
+
+        draw("Square", "bb_accent", {
+            Filled = true,
+                Position = UDim2.new(0, 0, 0, 0),
+                Size = UDim2.new(1, 0, 0.2, 0),
+                Color = self.themes.default.accent
+            }, self.drawings.bb_il
+        )
+
+        draw("Square", "bb_bg", {
+                Filled = true,
+                Position = UDim2.fromOffset(1, 1),
+                Size = UDim2.new(1, -2, 1, -2),
+                Color = self.themes.default.background
+            }, self.drawings.bb_il
+        )
+    end
+    -- end bottom bar
 
     -- setup window bind
     self.connections["menu_bind"] = input.InputBegan:Connect(function(input, processed)
@@ -216,6 +294,8 @@ function library.new(self,
             end
         end
     end)
+
+    return window
 end
 
 function library.unload(callback: () -> ()?) : ()
