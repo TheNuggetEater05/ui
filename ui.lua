@@ -790,7 +790,7 @@ do -- Library
                     Transparency = 1,
                     Color = Library.Theme.Outline,
                     Size = Vector2.new(ContentHolderBackground.Size.X/2 - 3, 0) + props.Size,
-                    Position = Vector2.new(SectionX, (Tab.Sections[props.Side] == 0 and ContentHolderBackground.Position.Y + 5 or (Tab.Sections[props.Side] + 5) + ContentHolderBackground.Position.Y + 5)),
+                    Position = Vector2.new(SectionX, (Tab.Sections[props.Side] == 0 and ContentHolderBackground.Position.Y + 5 or (Tab.Sections[props.Side]) + ContentHolderBackground.Position.Y + 5)),
                     Filled = true,
                 })
                 Section.Drawings.SectionOutline = SectionOutline
