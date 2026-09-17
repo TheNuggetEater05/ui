@@ -1,13 +1,10 @@
+if getgenv().ui_unload then getgenv().ui_unload() end
+
 local HttpService = game:GetService("HttpService")
 local Workspace, RunService, UserInputService, Players = game:GetService("Workspace"), game:GetService("RunService"), game:GetService("UserInputService"), game:GetService("Players")
 local Camera, LocalPlayer = Workspace.CurrentCamera, Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-
-local Fonts = {
-    Minecraftia = 1,
-    SmallestPixel7 = 1,
-    DmtFont = 1
-}
+local ZIndex = 0
 
 local Library = {
     Binds = {},
@@ -37,21 +34,23 @@ local Library = {
 
     Theme = {
         Accent = {
-            Color3.fromRGB(240, 255, 104),
+            Color3.fromRGB(233, 224, 104),
         },
 
         Outline = Color3.fromRGB(0, 0, 0),
-        Inline = Color3.fromRGB(62, 62, 62),
-        DarkContrast = Color3.fromRGB(20, 20, 20),
-        LightContrast = Color3.fromRGB(24, 24, 24),
-        Background = Color3.fromRGB(30, 30, 30),
+        Inline = Color3.fromRGB(187, 180, 86),
 
-        Font = Fonts.Minecraftia,
+        DarkContrast = Color3.fromRGB(36, 34, 25),
+        LightContrast = Color3.fromRGB(48, 46, 33),
+        Background = Color3.fromRGB(48, 46, 33),
+
+        Font = 3,
         TextSize = 13,
+
         White = Color3.fromRGB(255, 255, 255),
-        DarkWhite = Color3.fromRGB(209, 209, 209),
-        LightGrey = Color3.fromRGB(190, 190, 190),
-        DarkGrey = Color3.fromRGB(95, 95, 95)
+        DarkWhite = Color3.fromRGB(196, 190, 119),
+        LightGrey = Color3.fromRGB(196, 190, 119),
+        DarkGrey = Color3.fromRGB(134, 129, 61)
     },
     Images = {
         GradientDown = crypt.base64decode("iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAYAAADL1t+KAAAACXBIWXMAAAsTAAALEwEAmpwYAAAFr2lUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNi4wLWMwMDIgNzkuMTY0MzYwLCAyMDIwLzAyLzEzLTAxOjA3OjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdEV2dD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjEuMSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDIxLTExLTAzVDE2OjA5OjA3WiIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyMS0xMS0wM1QxNjowOTowN1oiIHhtcDpNb2RpZnlEYXRlPSIyMDIxLTExLTAzVDE2OjA5OjA3WiIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDowZTY1NWJlYy1mZDM4LTM4NDMtOWI2NS04MjAxMzhlMDk1NzEiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDpiODczZmMzNi00ZmQ4LWI5NDAtYmI4Zi00ZTViYzNhY2RjZWIiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDpiOTUyZTJhMS04NDI3LTM2NDEtODg4YS00Njc3OGYzOTVjYjEiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIj4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpiOTUyZTJhMS04NDI3LTM2NDEtODg4YS00Njc3OGYzOTVjYjEiIHN0RXZ0OndoZW49IjIwMjEtMTEtMDNUMTY6MDk6MDdaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjEuMSAoV2luZG93cykiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjBlNjU1YmVjLWZkMzgtMzg0My05YjY1LTgyMDEzOGUwOTU3MSIgc3RFdnQ6d2hlbj0iMjAyMS0xMS0wM1QxNjowOTowN1oiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCAyMS4xIChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4I1RXvAAAIGElEQVR4nO3XsW0gMQADQb6h0Nd/uy5CgfCLmQqYLfhv2zcA4L/283oAAHBP0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASBA0AEgQNABIEDQASDgbPtejwAA7njoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABBwtn2vRwAAdzx0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAg4235fjwAA7njoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABBwtn2vRwAAdzx0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAg4277XIwCAOx46AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAScbd/rEQDAHQ8dAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAALOtt/XIwCAOx46AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAQIOgAECDoABAg6AAScbd/rEQDAHQ8dAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAAIEHQACBB0AAgQdAALOtu/1CADgjocOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAGCDgABgg4AAYIOAAF/LUoEerct0lkAAAAASUVORK5CYII="),
@@ -72,12 +71,19 @@ local Utility = {}
 do -- Utility
     function Utility.NewDrawing(Type, Props, Location)
         local draw = Drawing.new(Type)
+
         for index, value in pairs(Props) do
             draw[index] = value
         end
+
         Location = Location or Library.Drawings
 
         Location[#Location + 1] = draw
+
+        if draw.ZIndex == 0 then
+            ZIndex += 1
+            draw.ZIndex = ZIndex
+        end
 
         return draw
     end
@@ -172,43 +178,6 @@ do -- Utility
             end
             
             DragUtil.MouseEnd = UserInputService:GetMouseLocation()
-        end)
-    end
-
-    function Utility.DrawCursor()
-        local CursorOutline = Utility.NewDrawing("Triangle", {
-            Color = Library.Theme.Outline,
-            Visible = false,
-            Thickness = 1,
-            Transparency = 1,
-            Filled = false,
-            ZIndex = 50,
-        }, Library.Special.Cursor)
-
-        local CursorFill = Utility.NewDrawing("Triangle", {
-            Color = Library.Theme.Accent[1],
-            Visible = false,
-            Thickness = 1,
-            Transparency = 1,
-            Filled = true,
-            ZIndex = 50,
-        }, Library.Special.Cursor)
-        Utility.AddConnection(RunService.RenderStepped, function()
-            local Mouse = UserInputService:GetMouseLocation()
-            if Library.WindowVisible then
-                CursorOutline.Visible = true
-                CursorOutline.PointA = Vector2.new(Mouse.X, Mouse.Y)
-                CursorOutline.PointB = Vector2.new(Mouse.X + 12, Mouse.Y + 4)
-                CursorOutline.PointC = Vector2.new(Mouse.X + 4, Mouse.Y + 12)
-
-                CursorFill.Visible = true
-                CursorFill.PointA = Vector2.new(Mouse.X, Mouse.Y)
-                CursorFill.PointB = Vector2.new(Mouse.X + 12, Mouse.Y + 4)
-                CursorFill.PointC = Vector2.new(Mouse.X + 4, Mouse.Y + 12)
-            else
-                CursorOutline.Visible = false
-                CursorFill.Visible = false
-            end
         end)
     end
 
@@ -578,13 +547,14 @@ do -- Library
             Font = Library.Theme.Font,
             Size = Library.Theme.TextSize,
             Color = Library.Theme.DarkWhite,
-            Position = TopbarBackground.Position + Vector2.new(6, (TopbarBackground.Size.Y/2)-7),
+            Position = TopbarBackground.Position + Vector2.new(6, (TopbarBackground.Size.Y/2)-8),
             Center = false,
             Outline = true,
             Visible = true,
             Transparency = 1
         })
         TopbarTitleText.Text = props.Name
+
 
         local TopbarInfoText = Utility.NewDrawing("Text", {
             Font = Library.Theme.Font,
@@ -596,7 +566,7 @@ do -- Library
             Transparency = 1
         })
         TopbarInfoText.Text = Utility.ParseTriggers("{month} {day} {year}")
-        TopbarInfoText.Position = TopbarBackground.Position + Vector2.new(TopbarBackground.Size.X - TopbarInfoText.TextBounds.X - 5, (TopbarBackground.Size.Y/2)-7)
+        TopbarInfoText.Position = TopbarBackground.Position + Vector2.new(TopbarBackground.Size.X - TopbarInfoText.TextBounds.X - 5, (TopbarBackground.Size.Y/2)-8)
         
         Utility.AddDrag(TopbarOutline, Library.Drawings)
 
@@ -765,7 +735,7 @@ do -- Library
             })
             Tab.Drawings.TabText = TabText
             TabText.Text = props.Name
-            TabText.Position = TabBackground.Position + Vector2.new((TabBackground.Size.X/2) - (TabText.TextBounds.X/2), 5)
+            TabText.Position = TabBackground.Position + Vector2.new((TabBackground.Size.X/2) - (TabText.TextBounds.X/2), 3)
 
             -- << Detect clicks >>
             Utility.AddConnection(UserInputService.InputBegan, function(Input)
@@ -834,9 +804,10 @@ do -- Library
                     Visible = false,
                     Transparency = 1
                 })
+                
                 Section.Drawings.SectionText = SectionText
                 SectionText.Text = props.Name
-                SectionText.Position = Vector2.new(SectionBackground.Position.X + (SectionBackground.Size.X / 2) - (SectionText.TextBounds.X / 2), SectionBackground.Position.Y + 2)
+                SectionText.Position = Vector2.new(SectionBackground.Position.X + (SectionBackground.Size.X / 2) - (SectionText.TextBounds.X / 2), SectionBackground.Position.Y + 1)
 
                 function Section:UpdateSizeY(sizeY)
                     SectionOutline.Size = Vector2.new(SectionOutline.Size.X, sizeY + 5)
@@ -847,6 +818,8 @@ do -- Library
                     SectionBackground.Size = Vector2.new(SectionInline.Size.X - 2, SectionInline.Size.Y - 2)
                     SectionBackground.Position = Vector2.new(SectionInline.Position.X + 1, SectionInline.Position.Y + 1)
                 end
+
+                Tab.Sections[props.Side] += 4
 
                 function Section:Toggle(eprops)
                     eprops.Name = eprops.Name or "button"
@@ -904,7 +877,7 @@ do -- Library
                         Size = Library.Theme.TextSize,
                         Color = eprops.Color,
                         Text = eprops.Name,
-                        Position = Vector2.new(ToggleOutline.Position.X + ToggleOutline.Size.X + 5, ToggleOutline.Position.Y ),
+                        Position = Vector2.new(ToggleOutline.Position.X + ToggleOutline.Size.X + 5, ToggleOutline.Position.Y - 2),
                         Center = false,
                         Outline = true,
                         Visible = false,
@@ -1083,6 +1056,8 @@ do -- Library
                             }
                         }
 
+                        local ZIndex = 800
+
                         local H, S, V = Colorpicker.Color:ToHSV()
                         Colorpicker.Colors.HSV[1] = H
                         Colorpicker.Colors.HSV[2] = S
@@ -1094,7 +1069,7 @@ do -- Library
                             Thickness = 0,
                             Color = Library.Theme.Outline,
                             Visible = false,
-                            Filled = true
+                            Filled = true,
                         })
                         Colorpicker.Drawings.CPickerOutline = CPickerOutline
 
@@ -1133,7 +1108,8 @@ do -- Library
                                 Thickness = 0,
                                 Color = Library.Theme.Outline,
                                 Visible = false,
-                                Filled = true
+                                Filled = true,
+                                ZIndex = ZIndex
                             })
                             Colorpicker.Window.WindowOutline = WindowOutline
     
@@ -1143,7 +1119,8 @@ do -- Library
                                 Thickness = 0,
                                 Color = Library.Theme.Inline,
                                 Visible = false,
-                                Filled = true
+                                Filled = true,
+                                ZIndex = ZIndex + 1
                             })
                             Colorpicker.Window.WindowInline = WindowInline
     
@@ -1153,7 +1130,8 @@ do -- Library
                                 Thickness = 0,
                                 Color = Library.Theme.DarkContrast,
                                 Visible = false,
-                                Filled = true
+                                Filled = true,
+                                ZIndex = ZIndex + 2
                             })
                             Colorpicker.Window.WindowBackground = WindowBackground
 
@@ -1164,6 +1142,7 @@ do -- Library
                                 Color = Library.Theme.Outline,
                                 Visible = false,
                                 Filled = true,
+                                ZIndex = ZIndex + 3
                             })
                             Colorpicker.Window.WindowTopOutline = WindowTopOutline
 
@@ -1173,7 +1152,8 @@ do -- Library
                                 Thickness = 0,
                                 Color = Library.Theme.Inline,
                                 Visible = false,
-                                Filled = true
+                                Filled = true,
+                                ZIndex = ZIndex + 4
                             })
                             Colorpicker.Window.WindowTopInline = WindowTopInline
 
@@ -1183,7 +1163,8 @@ do -- Library
                                 Thickness = 0,
                                 Color = Library.Theme.DarkContrast,
                                 Visible = false,
-                                Filled = true
+                                Filled = true,
+                                ZIndex = ZIndex + 5
                             })
                             Colorpicker.Window.WindowTopBackground = WindowTopBackground
 
@@ -1195,7 +1176,8 @@ do -- Library
                                 Center = false,
                                 Outline = true,
                                 Visible = false,
-                                Transparency = 1
+                                Transparency = 1,
+                                ZIndex = ZIndex + 6
                             })
                             Colorpicker.Window.TitleText = TitleText
                             TitleText.Position = Vector2.new(WindowTopOutline.Position.X + (WindowTopOutline.Size.X/2) - (TitleText.TextBounds.X/2), WindowTopOutline.Position.Y + 4)
@@ -1502,7 +1484,7 @@ do -- Library
                         Transparency = 1
                     })
                     Button.Drawings.ButtonText = ButtonText
-                    ButtonText.Position = Vector2.new(ButtonOutline.Position.X + (ButtonOutline.Size.X/2)-(ButtonText.TextBounds.X/2), ButtonOutline.Position.Y + 3)
+                    ButtonText.Position = Vector2.new(ButtonOutline.Position.X + (ButtonOutline.Size.X/2)-(ButtonText.TextBounds.X/2), ButtonOutline.Position.Y + 1)
 
                     Section.ContentSize = Section.ContentSize + ButtonOutline.Size.Y + 2
                     Tab.Sections[props.Side] = Tab.Sections[props.Side] + ButtonOutline.Size.Y + 2 or Tab.Sections[props.Side]
@@ -1637,7 +1619,7 @@ do -- Library
                         Transparency = 1
                     })
                     MultiButton.Drawings.ButtonText = LeftButtonText
-                    LeftButtonText.Position = Vector2.new(LeftButtonOutline.Position.X + (LeftButtonOutline.Size.X/2)-(LeftButtonText.TextBounds.X/2), LeftButtonOutline.Position.Y + 3)
+                    LeftButtonText.Position = Vector2.new(LeftButtonOutline.Position.X + (LeftButtonOutline.Size.X/2)-(LeftButtonText.TextBounds.X/2), LeftButtonOutline.Position.Y + 1)
 
                     local RightButtonText = Utility.NewDrawing("Text", {
                         Font = Library.Theme.Font,
@@ -1650,7 +1632,7 @@ do -- Library
                         Transparency = 1
                     })
                     MultiButton.Drawings.RightButtonText = RightButtonText
-                    RightButtonText.Position = Vector2.new(RightButtonOutline.Position.X + (RightButtonOutline.Size.X/2)-(RightButtonText.TextBounds.X/2), RightButtonOutline.Position.Y + 3)
+                    RightButtonText.Position = Vector2.new(RightButtonOutline.Position.X + (RightButtonOutline.Size.X/2)-(RightButtonText.TextBounds.X/2), RightButtonOutline.Position.Y + 1)
 
                     Section.ContentSize = Section.ContentSize + LeftButtonOutline.Size.Y + 2
                     Tab.Sections[props.Side] = Tab.Sections[props.Side] + LeftButtonOutline.Size.Y + 2 or Tab.Sections[props.Side]
@@ -1766,7 +1748,7 @@ do -- Library
                         Visible = false,
                         Transparency = 1
                     })
-                    SliderTitle.Position = Vector2.new(SliderOutline.Position.X + 3, SliderOutline.Position.Y - 11)
+                    SliderTitle.Position = Vector2.new(SliderOutline.Position.X + 3, SliderOutline.Position.Y -15)
                     Slider.Drawings.SliderTitle = SliderTitle
 
                     local SliderText = Utility.NewDrawing("Text", {
@@ -1780,7 +1762,7 @@ do -- Library
                     })
                     Slider.Drawings.SliderText = SliderText
                     SliderText.Text = Utility.ParseTriggers(tostring(eprops.Default).." "..eprops.Symbol.." / "..tostring(eprops.Max).." "..eprops.Symbol)
-                    SliderText.Position = Vector2.new(SliderOutline.Position.X + SliderOutline.Size.X - SliderText.TextBounds.X, SliderOutline.Position.Y - 11)
+                    SliderText.Position = Vector2.new(SliderOutline.Position.X + SliderOutline.Size.X - SliderText.TextBounds.X, SliderOutline.Position.Y - 14)
 
                     Section.ContentSize = Section.ContentSize + SliderOutline.Size.Y + 16
                     Tab.Sections[props.Side] = Tab.Sections[props.Side] + SliderOutline.Size.Y+ 16 or Tab.Sections[props.Side]
@@ -1800,7 +1782,7 @@ do -- Library
                         local Percent = 1 - ((eprops.Max - DecimalsCon) / (eprops.Max - eprops.Min))
                         SliderFill.Size = Vector2.new(SliderBackground.Size.X * Percent, SliderBackground.Size.Y)
                         SliderText.Text = ("%s %s / %s %s"):format(DecimalsCon, eprops.Symbol, eprops.Max, eprops.Symbol)
-                        SliderText.Position = Vector2.new(SliderOutline.Position.X + SliderOutline.Size.X - SliderText.TextBounds.X, SliderOutline.Position.Y - 11)
+                        SliderText.Position = Vector2.new(SliderOutline.Position.X + SliderOutline.Size.X - SliderText.TextBounds.X, SliderOutline.Position.Y - 14)
                         
                         eprops.Callback(value)
                     end
@@ -1862,19 +1844,19 @@ do -- Library
                         Open = false,
                         Drawings = {},
                         Axis = Section.ContentSize,
-                        ZIndex = 20,
+                        ZIndex = 800,
                         Selected = eprops.List[eprops.DefaultIndex],
                         Buttons = {},
                         List = eprops.List
                     }
-                
+
                     local DropdownOutline = Utility.NewDrawing("Square", {
                         Position = Vector2.new(SectionBackground.Position.X + 8, SectionBackground.Position.Y + 15 + Dropdown.Axis + 13),
                         Size = Vector2.new(SectionBackground.Size.X - 16, 18),
                         Thickness = 0,
                         Color = Library.Theme.Outline,
                         Visible = false,
-                        Filled = true
+                        Filled = true,
                     })
                     Dropdown.Drawings.DropdownOutline = DropdownOutline
 
@@ -1889,7 +1871,7 @@ do -- Library
                         Transparency = 1
                     })
                     Dropdown.Drawings.DropdownTitle = DropdownTitle
-                    DropdownTitle.Position = Vector2.new(DropdownOutline.Position.X + 3, DropdownOutline.Position.Y - 11)
+                    DropdownTitle.Position = Vector2.new(DropdownOutline.Position.X + 3, DropdownOutline.Position.Y - 15)
                 
                     local DropdownInline = Utility.NewDrawing("Square", {
                         Visible = false,
@@ -1931,7 +1913,7 @@ do -- Library
                         Transparency = 1
                     })
                     Dropdown.Drawings.DropdownText = DropdownText
-                    DropdownText.Position = Vector2.new(DropdownOutline.Position.X + (DropdownOutline.Size.X/2)-(DropdownText.TextBounds.X/2), DropdownOutline.Position.Y + 3)
+                    DropdownText.Position = Vector2.new(DropdownOutline.Position.X + (DropdownOutline.Size.X/2)-(DropdownText.TextBounds.X/2), DropdownOutline.Position.Y + 1)
 
                     local DropdownButton = Utility.NewDrawing("Text", {
                         Font = Library.Theme.Font,
@@ -2036,7 +2018,7 @@ do -- Library
                             ZIndex = DropdownButtonZIdx + 3
                         })
                         Item.ButtonText = ButtonText
-                        ButtonText.Position = Vector2.new(ButtonOutline.Position.X + (ButtonOutline.Size.X/2)-(ButtonText.TextBounds.X/2), ButtonOutline.Position.Y + 3)
+                        ButtonText.Position = Vector2.new(ButtonOutline.Position.X + (ButtonOutline.Size.X/2)-(ButtonText.TextBounds.X/2), ButtonOutline.Position.Y + 1)
 
                         Utility.AddConnection(UserInputService.InputBegan, function(Input)
                             if Input.UserInputType == Enum.UserInputType.MouseButton1 and Utility.MouseOver(ButtonOutline, true) then
@@ -2190,7 +2172,7 @@ do -- Library
                     NotificationOutline.Position = NotificationOutline.Position + Vector2.new(0, NotificationOutline.Size.Y)
                     NotificationInline.Position = NotificationOutline.Position + Vector2.new(1, 1)
                     NotificationBackground.Position = NotificationInline.Position + Vector2.new(1, 1)
-                    NotificationText.Position = NotificationBackground.Position + Vector2.new(5, 2)
+                    NotificationText.Position = NotificationBackground.Position + Vector2.new(5, 0)
                 end
             end)
         end
@@ -2221,7 +2203,6 @@ do -- Library
             if Input.KeyCode == Library.Binds["Window"] then
                 Window:Fade(Library.WindowVisible)
                 Library.WindowVisible = not Library.WindowVisible
-                UserInputService.MouseIconEnabled = not Library.WindowVisible
             end
         end)
 
@@ -2248,8 +2229,16 @@ do -- Library
         UserInputService.MouseIconEnabled = Library.WindowVisible
         return Window
     end
+end
 
-    Utility.DrawCursor()
+getgenv().ui_unload = function()
+    for i, connection in Library.Connections do
+        connection:Disconnect()
+    end
+
+    for i, drawing in Library.Drawings do
+        drawing:Remove()
+    end
 end
 
 return {Library, Utility}
